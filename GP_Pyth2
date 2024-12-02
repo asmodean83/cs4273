@@ -1,0 +1,96 @@
+import time
+import requests
+import speech_recognition as sr
+import pyttsx3
+import json
+
+# Initialize text-to-speech engine
+engine = pyttsx3.init()
+
+# Function for text-to-speech
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
+
+# Simulate activation mechanism
+def wait_for_activation():
+    print("Say 'Hey Gemini' to activate...")
+    speak("Say Hey Gemini to activate...")
+    while True:
+        # Use speech recognition to detect activation
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            try:
+                print("Listening for activation...")
+                audio = recognizer.listen(source, timeout=5)
+                phrase = recognizer.recognize_google(audio).lower()
+                if "hey gemini" in phrase:
+                    print("Activation detected!")
+                    speak("I'm listening.")
+                    return True
+            except sr.UnknownValueError:
+                pass
+            except sr.WaitTimeoutError:
+                pass
+
+# Function to capture a user's note
+def capture_note():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        try:
+            print("Listening for your note...")
+            audio = recognizer.listen(source, timeout=10)
+            note = recognizer.recognize_google(audio)
+            print(f"You said: {note}")
+            return note
+        except sr.UnknownValueError:
+            print("I couldn't understand what you said.")
+            speak("I couldn't understand what you said. Please try again.")
+            return None
+        except sr.WaitTimeoutError:
+            print("Listening timed out.")
+            speak("Listening timed out. Please try again.")
+            return None
+
+# Function to send the note to meBot
+def send_to_mebot(note):
+    print("Sending note to meBot...")
+    speak("I'll store that for later.")
+    
+    # Replace with actual meBot API endpoint and key
+    url = "https://api.mebot.example.com/notes"
+    api_key = "your-api-key"
+
+    # Create a JSON payload
+    payload = {
+        "action": "store_note",
+        "content": note
+    }
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        if response.status_code == 200:
+            print("Note successfully sent to meBot!")
+        else:
+            print(f"Failed to send note. Status Code: {response.status_code}")
+            print(response.text)
+    except Exception as e:
+        print(f"Error sending note: {e}")
+
+# Main program flow
+def main():
+    if wait_for_activation():
+        speak("Listening for your note.")
+        note = capture_note()
+        if note:
+            send_to_mebot(note)
+        else:
+            print("No valid note captured.")
+
+if __name__ == "__main__":
+    main()
