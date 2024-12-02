@@ -1,0 +1,100 @@
+
+
+
+
+Example Code
+#include <iostream>
+#include <string>
+#include <thread>
+#include <chrono>
+#include <curl/curl.h>
+#include <nlohmann/json.hpp>
+
+// Namespace for JSON library
+using json = nlohmann::json;
+
+// Simulate speech-to-text conversion (placeholder for real implementation)
+std::string speechToText() {
+    std::cout << "Listening to the user...\n";
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // Simulate delay
+    return "Take a note about project X: We need to update the API"; // Example user input
+}
+
+// Parse the text input to extract subject and note content
+std::pair<std::string, std::string> parseInput(const std::string &input) {
+    size_t subjectPos = input.find("about");
+    size_t contentPos = input.find(":");
+    if (subjectPos != std::string::npos && contentPos != std::string::npos) {
+        std::string subject = input.substr(subjectPos + 6, contentPos - subjectPos - 6);
+        std::string content = input.substr(contentPos + 1);
+        return {subject, content};
+    }
+    return {"", ""};
+}
+
+// Send the note to meBot API (placeholder for real implementation)
+void sendTomeBot(const std::string &subject, const std::string &content) {
+    std::cout << "Preparing to send note to meBot...\n";
+
+    // Create a JSON payload
+    json payload = {
+        {"action", "create_note"},
+        {"subject", subject},
+        {"content", content}
+    };
+
+    std::string url = "https://api.meBot.example.com/notes"; // Placeholder URL
+    std::string apiKey = "your-api-key";                      // Placeholder API key
+
+    // Initialize CURL
+    CURL *curl = curl_easy_init();
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, curl_slist_append(NULL, ("Authorization: Bearer " + apiKey).c_str()));
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+
+        std::string jsonStr = payload.dump();
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonStr.c_str());
+
+        // Perform the request
+        CURLcode res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            std::cerr << "CURL error: " << curl_easy_strerror(res) << "\n";
+        } else {
+            std::cout << "Note successfully sent to meBot!\n";
+        }
+
+        // Cleanup
+        curl_easy_cleanup(curl);
+    } else {
+        std::cerr << "Failed to initialize CURL.\n";
+    }
+}
+
+int main() {
+    std::cout << "Voice-activated Note-taking System\n";
+
+    // Simulate activation phrase
+    std::cout << "Say 'Hey Gemini' to activate...\n";
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // Simulate waiting for activation
+    std::cout << "Hey Gemini detected. Starting recording...\n";
+
+    // Simulate speech-to-text processing
+    std::string inputText = speechToText();
+    std::cout << "You said: " << inputText << "\n";
+
+    // Parse the input
+    auto [subject, content] = parseInput(inputText);
+    if (subject.empty() || content.empty()) {
+        std::cerr << "Failed to parse input. Please try again.\n";
+        return 1;
+    }
+
+    std::cout << "Parsed Subject: " << subject << "\n";
+    std::cout << "Parsed Note: " << content << "\n";
+
+    // Send the note to Gemini
+    sendTomeBot(subject, content);
+
+    return 0;
+}
