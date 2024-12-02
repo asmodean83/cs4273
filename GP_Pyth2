@@ -1,96 +1,79 @@
-import time
-import requests
 import speech_recognition as sr
-import pyttsx3
 import json
+import requests
 
-# Initialize text-to-speech engine
-engine = pyttsx3.init()
+# Constants for the AI Assistant API
+API_URL = "https://api.mebot.com/query"
+HEADERS = {'Content-Type': 'application/json'}
 
-# Function for text-to-speech
-def speak(text):
-    engine.say(text)
-    engine.runAndWait()
-
-# Simulate activation mechanism
-def wait_for_activation():
-    print("Say 'Hey Gemini' to activate...")
-    speak("Say Hey Gemini to activate...")
-    while True:
-        # Use speech recognition to detect activation
-        recognizer = sr.Recognizer()
-        with sr.Microphone() as source:
-            try:
-                print("Listening for activation...")
-                audio = recognizer.listen(source, timeout=5)
-                phrase = recognizer.recognize_google(audio).lower()
-                if "hey gemini" in phrase:
-                    print("Activation detected!")
-                    speak("I'm listening.")
-                    return True
-            except sr.UnknownValueError:
-                pass
-            except sr.WaitTimeoutError:
-                pass
-
-# Function to capture a user's note
-def capture_note():
+def capture_audio():
+    """
+    Captures audio from the microphone and converts it to text.
+    """
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
+        print("Listening... Please ask your question.")
         try:
-            print("Listening for your note...")
-            audio = recognizer.listen(source, timeout=10)
-            note = recognizer.recognize_google(audio)
-            print(f"You said: {note}")
-            return note
-        except sr.UnknownValueError:
-            print("I couldn't understand what you said.")
-            speak("I couldn't understand what you said. Please try again.")
-            return None
+            audio = recognizer.listen(source, timeout=5)
+            text = recognizer.recognize_google(audio)
+            print(f"You said: {text}")
+            return text
         except sr.WaitTimeoutError:
-            print("Listening timed out.")
-            speak("Listening timed out. Please try again.")
+            print("No speech detected within the time limit.")
+            return None
+        except sr.UnknownValueError:
+            print("Could not understand audio.")
+            return None
+        except sr.RequestError as e:
+            print(f"Could not request results; {e}")
             return None
 
-# Function to send the note to meBot
-def send_to_mebot(note):
-    print("Sending note to meBot...")
-    speak("I'll store that for later.")
-    
-    # Replace with actual meBot API endpoint and key
-    url = "https://api.mebot.example.com/notes"
-    api_key = "your-api-key"
-
-    # Create a JSON payload
+def create_json_payload(question):
+    """
+    Converts the user's question into a JSON payload.
+    """
     payload = {
-        "action": "store_note",
-        "content": note
+        "user_query": question
     }
+    return json.dumps(payload)
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-
+def send_to_ai_assistant(json_payload):
+    """
+    Sends the JSON payload to the AI assistant API and returns the response.
+    """
     try:
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        response = requests.post(API_URL, headers=HEADERS, data=json_payload)
         if response.status_code == 200:
-            print("Note successfully sent to meBot!")
+            return response.json().get("response", "No response received from assistant.")
         else:
-            print(f"Failed to send note. Status Code: {response.status_code}")
-            print(response.text)
-    except Exception as e:
-        print(f"Error sending note: {e}")
+            print(f"Error: Received status code {response.status_code}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+        return None
 
-# Main program flow
 def main():
-    if wait_for_activation():
-        speak("Listening for your note.")
-        note = capture_note()
-        if note:
-            send_to_mebot(note)
-        else:
-            print("No valid note captured.")
+    """
+    Main function to run the program.
+    """
+    print("Welcome to meBot AI Assistant!")
+    while True:
+        # Capture user's audio input
+        question = capture_audio()
+        if not question:
+            print("Unable to process your question. Try again.")
+            continue
 
-if __name__ == "__main__":
-    main()
+        # Create JSON payload
+        json_payload = create_json_payload(question)
+        print("Sending your question to meBot...")
+
+        # Send to AI assistant
+        response = send_to_ai_assistant(json_payload)
+        if response:
+            print(f"meBot says: {response}")
+        else:
+            print("Failed to get a response from meBot.")
+
+        # Ask if the user wants to continue
+       
