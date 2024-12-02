@@ -1,0 +1,58 @@
+Python test
+
+import speech_recognition as sr
+import pyttsx3
+import nltk
+from queue import Queue
+
+# Initialize speech recognition and text-to-speech engines
+recognizer = sr.Recognizer()
+engine = pyttsx3.init()
+
+# Create a queue to store notes
+note_queue = Queue()
+
+def listen_and_process():
+    with sr.Microphone() as source:
+        print("Listening...")
+        audio = recognizer.listen(source)
+
+        try:
+            text = recognizer.recognize_google(audio)
+            print("You said:", text)
+
+            # Process the text using NLP techniques
+            # ... (NLP processing here)
+
+            # If the intent is to take a note, add it to the queue
+            if "take a note" in text:
+                note = text.replace("take a note", "")
+                note_queue.put(note)
+                engine.say("Note added to queue.")
+                engine.runAndWait()
+
+        except sr.UnknownValueError:
+            print("Could not understand audio")
+        except sr.RequestError as e:
+            print("Could not request results from Google Speech Recognition service; {0}".format(e))
+
+def process_notes():
+    while True:
+        note = note_queue.get()
+        print("Processing note:", note)
+
+        # Perform AI analysis on the note
+        # ... (AI analysis here)
+
+        # Provide feedback to the user
+        engine.say("Note processed. Here's what I found:")
+        # ... (Provide insights)
+        engine.runAndWait()
+        note_queue.task_done()
+
+if __name__ == "__main__":
+    # Start listening and processing audio
+    listen_and_process()
+
+    # Start processing notes from the queue
+    process_notes()
