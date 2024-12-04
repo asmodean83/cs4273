@@ -8,8 +8,8 @@ This is our meBot assistant implementation which is implemented in Python and JS
 - **AI Communication**
 
 ## Requirements
-- Python 3.0 Or leater
-- `speach_recognition` library
+- Python 3.0 Or later
+- `speech_recognition` library
 - `requests` library
 - `pip`
 - Microphone
@@ -19,5 +19,5 @@ This is our meBot assistant implementation which is implemented in Python and JS
 
 ## Usage
 - 1. Run the script.
-- 2. Speak into your microphone once you are promted.
+- 2. Speak into your microphone once you are prompted.
 - 3. Wait for AI to respond.
