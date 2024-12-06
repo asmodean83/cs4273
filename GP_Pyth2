@@ -1,3 +1,4 @@
+
 import speech_recognition as sr
 import json
 import requests
@@ -77,3 +78,5 @@ def main():
 
         # Ask if the user wants to continue
        
+if __name__ == "__main__":
+    main()
