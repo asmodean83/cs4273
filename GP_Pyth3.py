@@ -4,7 +4,7 @@ import google.generativeai as genai
 # Constants for the AI Assistant API
 HEADERS = {'Content-Type': 'application/json'}
 
-genai.configure(api_key="AIzaSyBSvtStXTbE4MUtEiEkRj99aSveiT57Idk")
+genai.configure(api_key="Gemini Key here")
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 
